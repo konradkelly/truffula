@@ -6,6 +6,7 @@ PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 ## App.java
 
 ## ConsoleColor.java
+ConsoleColor is an enum that stores ANSI escape codes for different colors. It has constants for various colors such as BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE, and RESET. Each constant has a corresponding ANSI escape code that can be used to change the color of text in the console. The enum also has a method getCode() that returns the ANSI escape code for the color. This allows other classes to easily access and use the color codes when printing colored text to the console. There is also a public toString() method that returns the ANSI escape code as a String, allowing the enum to be used directly in print statements.
 
 ## ColorPrinter.java / ColorPrinterTest.java
 ColorPrinter is a utility class that uses ANSI escape codes to print colored text to the console. It contains fields, currentColor and printStream that sets the current color and the print stream, that prints the colored text to stdout. There is also a constructor with a default color of white. The class has getters and setters as well as methods to set the color, reset the color, and print colored text.
