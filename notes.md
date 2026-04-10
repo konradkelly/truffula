@@ -14,6 +14,9 @@ ColorPrinter is a utility class that uses ANSI escape codes to print colored tex
 The ColorPrinterTest class currently only contains a unit test for the ColorPrinter class. It tests the setColor method by creating an instance of ColorPrinter, setting the color to red. It asserts that the current color is red. This test fails as the print(String message, boolean reset) method has not been implemented yet. 
 
 ## TruffulaOptions.java / TruffulaOptionsTest.java
+The TruffulaOptions class is a utility class that manages the configuration for displaying the Truffula directory tree.  It has fields for the maximum depth of the tree and whether to show hidden files. The class provides getters and setters for these fields, allowing other classes to access and modify the options as needed. The root directory is specified by the user.
+
+The TruffulaOptionsTest class only contains only one unit-test, testValidDirectoryIsSet(@TempDir File tempDir), which tests that a valid directory can be set as the root directory in the TruffulaOptions class. It creates a temporary directory using the @TempDir annotation and sets it as the root directory in an instance of TruffulaOptions. The test then asserts that the root directory is correctly set to the temporary directory. This test is currently failing because the TruffulaOptions(String[] args) constructor has not been implemented yet.
 
 ## TruffulaPrinter.java / TruffulaPrinterTest.java
 
