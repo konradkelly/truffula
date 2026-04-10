@@ -8,6 +8,9 @@ PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 ## ConsoleColor.java
 
 ## ColorPrinter.java / ColorPrinterTest.java
+ColorPrinter is a utility class that uses ANSI escape codes to print colored text to the console. It contains fields, currentColor and printStream that sets the current color and the print stream, that prints the colored text to stdout. There is also a constructor with a default color of white. The class has getters and setters as well as methods to set the color, reset the color, and print colored text.
+
+The ColorPrinterTest class currently only contains a unit test for the ColorPrinter class. It tests the setColor method by creating an instance of ColorPrinter, setting the color to red. It asserts that the current color is red. This test fails as the print(String message, boolean reset) method has not been implemented yet. 
 
 ## TruffulaOptions.java / TruffulaOptionsTest.java
 
