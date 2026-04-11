@@ -4,6 +4,7 @@ As part of Wave 0, please fill out notes for each of the below files. They are i
 PLEASE MAKE FREQUENT COMMITS AS YOU FILL OUT THIS FILE.
 
 ## App.java
+App.java is where the main method resides. The implementation notes state that an instance of the TruffulaOptions class should be created. The options should be initialized with the command-line arguments passed to the main method. Then, an instance of the TruffulaPrinter class should be created, passing the options as a parameter. Finally, the printTree() method of the TruffulaPrinter instance should be called to display the directory tree structure in the console.
 
 ## ConsoleColor.java
 ConsoleColor is an enum that stores ANSI escape codes for different colors. It has constants for various colors such as BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE, and RESET. Each constant has a corresponding ANSI escape code that can be used to change the color of text in the console. The enum also has a method getCode() that returns the ANSI escape code for the color. This allows other classes to easily access and use the color codes when printing colored text to the console. There is also a public toString() method that returns the ANSI escape code as a String, allowing the enum to be used directly in print statements.
