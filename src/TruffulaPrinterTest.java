@@ -3,6 +3,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
@@ -10,7 +11,9 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TruffulaPrinterTest {
@@ -59,6 +62,230 @@ public class TruffulaPrinterTest {
         }
         return hidden;
     }
+
+@Test
+public void testPrintTree_SingleDirectory(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "myFolder");
+    folder.mkdir();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    String expected = "" + white + "myFolder/" + nl + reset;
+    assertEquals(expected, output);
+}
+
+@Test
+public void testPrintTree_FolderWithOneFile(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "root");
+    folder.mkdir();
+    new File(folder, "hello.txt").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    String expected = "" + white + "root/" + nl + reset
+                    + white + "   hello.txt" + nl + reset;
+    assertEquals(expected, output);
+}
+
+@Test
+public void testPrintTree_contains_SubFolders(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "root");
+    root.mkdir();
+    File sub = new File(root, "subfolder");
+    sub.mkdir();
+    File deep = new File(sub, "child-subfolder");
+    deep.mkdir();
+
+    TruffulaOptions options = new TruffulaOptions(root, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    String expected = "" + white + "root/" + nl + reset
+                    + white + "   subfolder/" + nl + reset
+                    + white + "      child-subfolder/" + nl + reset;
+    assertEquals(expected, output);
+}
+
+@Test
+public void testPrintTree_MultipleFiles(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "file_folder");
+    folder.mkdir();
+    new File(folder, "file1.txt").createNewFile();
+    new File(folder, "file2.txt").createNewFile();
+    new File(folder, "file3.txt").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+
+    printer.printTree();
+
+    String output = baos.toString();
+    ConsoleColor white = ConsoleColor.WHITE;
+
+    assertTrue(output.contains("" + white + "file_folder/"));
+    assertTrue(output.contains("" + white + "   file1.txt"));
+    assertTrue(output.contains("" + white + "   file2.txt"));
+    assertTrue(output.contains("" + white + "   file3.txt"));
+}
+
+@Test
+public void testPrintTree_FolderAndFileWithSimilarNames(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "Jupiter");
+    folder.mkdir();
+
+    File file = new File(tempDir, "Jupiter.txt");
+    file.createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(tempDir, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    System.out.println("ACTUAL OUTPUT:\n" + output);
+
+    assertTrue(output.contains(white + "   Jupiter/" + nl + reset));
+    assertTrue(output.contains(white + "   Jupiter.txt" + nl + reset));
+}
+
+@Test
+public void testPrintTree_NestedFoldersAndFiles(@TempDir File tempDir) throws IOException {
+    File a = new File(tempDir, "a");
+    a.mkdir();
+    File b = new File(a, "b");
+    b.mkdir();
+    File c = new File(b, "c");
+    c.mkdir();
+    File d = new File(c, "d");
+    d.mkdir();
+    new File(d, "test.txt").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(a, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+    String output = baos.toString();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+    String nl = System.lineSeparator();
+
+    String expected = "" + white + "a/" + nl + reset
+                    + white + "   b/" + nl + reset
+                    + white + "      c/" + nl + reset
+                    + white + "         d/" + nl + reset
+                    + white + "            test.txt" + nl + reset;
+    assertEquals(expected, output);
+}
+
+@Test
+public void testPrintTree_FileWithSpaces(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "docs");
+    folder.mkdir();
+    new File(folder, "lab samples.txt").createNewFile();
+    new File(folder, "data analysis.pdf").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+    String output = baos.toString();
+    ConsoleColor white = ConsoleColor.WHITE;
+
+    assertTrue(output.contains(white + "   lab samples.txt"));
+    assertTrue(output.contains(white + "   data analysis.pdf"));
+}
+
+@Test
+public void testPrintTree_FilesWithNoExtension(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "project");
+    folder.mkdir();
+    new File(folder, "octupuses").createNewFile();
+    new File(folder, "platypuses").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+    String output = baos.toString();
+    ConsoleColor white = ConsoleColor.WHITE;
+
+    assertTrue(output.contains(white + "   octupuses"));
+    assertTrue(output.contains(white + "   platypuses"));
+}
+
+@Test
+void testNonExistentDirectory() {
+    String[] args = {"/nonexistent/fake/path"};
+    assertThrows(FileNotFoundException.class, () -> new TruffulaOptions(args));
+}
+
+@Test
+public void testPrintTree_LongFileAndFolderNames(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "longlonglonglonglonglonglonglonglonglong");
+    root.mkdir();
+
+    File subfolder = new File(root, "folderfolderfolderfolderfolderfolderfolder");
+    subfolder.mkdir();
+
+    new File(root, "longlonglonglonglonglonglonglonglonglong.txt").createNewFile();
+    new File(root, "testtesttesttesttesttesttesttesttesttest").createNewFile();
+    new File(subfolder, "folderfolderfolderfolderfolderfolderfolder.pdf").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(root, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+
+    printer.printTree();
+
+    String output = baos.toString();
+    ConsoleColor white = ConsoleColor.WHITE;
+
+    assertTrue(output.contains(white + "longlonglonglonglonglonglonglonglonglong/"));
+    assertTrue(output.contains(white + "   longlonglonglonglonglonglonglonglonglong.txt"));
+    assertTrue(output.contains(white + "   testtesttesttesttesttesttesttesttesttest"));
+    assertTrue(output.contains(white + "   folderfolderfolderfolderfolderfolderfolder/"));
+    assertTrue(output.contains(white + "      folderfolderfolderfolderfolderfolderfolder.pdf"));
+}
 
     @Test
     public void testPrintTree_ExactOutput_WithCustomPrintStream(@TempDir File tempDir) throws IOException {
