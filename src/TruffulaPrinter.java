@@ -118,6 +118,11 @@ public class TruffulaPrinter {
       indent += "   ";
     }
 
+    ConsoleColor color = options.isUseColor()
+        ? colorSequence.get(k % colorSequence.size())
+        : ConsoleColor.WHITE;
+    out.setCurrentColor(color);
+
     if (file.isDirectory()) {
         out.println(indent + file.getName() + "/");
         

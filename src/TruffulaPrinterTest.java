@@ -11,8 +11,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -61,6 +61,15 @@ public class TruffulaPrinterTest {
             Files.setAttribute(path, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
         }
         return hidden;
+    }
+
+    private static String printTreeOutput(File root, boolean showHidden, boolean useColor) throws IOException {
+        TruffulaOptions options = new TruffulaOptions(root, showHidden, useColor);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+        printer.printTree();
+        return baos.toString();
     }
 
 @Test
@@ -373,6 +382,79 @@ public void testPrintTree_HiddenSubFolderShown(@TempDir File tempDir) throws IOE
     assertTrue(output.contains("shown.txt"));
     assertTrue(output.contains(".invisible"));
     assertTrue(output.contains("hidden.txt"));
+}
+
+@Test
+public void testPrintTree_LoopThroughThreeColors(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "dir");
+    root.mkdir();
+    new File(root, "interface.java").createNewFile();
+
+    File subDir = new File(root, "subdirectory");
+    subDir.mkdir();
+    new File(subDir, "child-class-x.java").createNewFile();
+    new File(subDir, "child-class-y.java").createNewFile();
+
+    String output = printTreeOutput(root, false, true);
+    String nl = System.lineSeparator();
+
+    assertTrue(output.contains(ConsoleColor.WHITE + "dir/" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.PURPLE + "   interface.java" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.PURPLE + "   subdirectory/" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.YELLOW + "      child-class-x.java" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.YELLOW + "      child-class-y.java" + nl + ConsoleColor.RESET));
+}
+
+@Test
+public void testPrintTree_LoopsThroughColorsUntilWhiteAgain(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "dir");
+    root.mkdir();
+    File lvl1 = new File(root, "level1");
+    lvl1.mkdir();
+    File lvl2 = new File(lvl1, "level2");
+    lvl2.mkdir();
+    File lvl3 = new File(lvl2, "level3");
+    lvl3.mkdir();
+
+    String output = printTreeOutput(root, false, true);
+    String nl = System.lineSeparator();
+
+    assertTrue(output.contains(ConsoleColor.WHITE + "dir/" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.PURPLE + "   level1/" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.YELLOW + "      level2/" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.WHITE + "         level3/" + nl + ConsoleColor.RESET));
+}
+
+@Test
+public void testPrintTree_NoColorOnlyWhite(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "dir");
+    root.mkdir();
+    File subDir = new File(root, "subdirectory");
+    subDir.mkdir();
+    new File(subDir, "notes.txt").createNewFile();
+
+    String output = printTreeOutput(root, false, false);
+
+    assertTrue(output.contains(ConsoleColor.WHITE + "dir/"));
+    assertTrue(output.contains(ConsoleColor.WHITE + "   subdirectory/"));
+    assertTrue(output.contains(ConsoleColor.WHITE + "      notes.txt"));
+    assertFalse(output.contains(ConsoleColor.PURPLE.toString()));
+    assertFalse(output.contains(ConsoleColor.YELLOW.toString()));
+}
+
+@Test
+public void testPrintTree_ColorWithHiddenShown(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "dir");
+    root.mkdir();
+    new File(root, "visible.txt").createNewFile();
+    createHiddenFile(root, ".hidden.txt");
+
+    String output = printTreeOutput(root, true, true);
+    String nl = System.lineSeparator();
+
+    assertTrue(output.contains(ConsoleColor.WHITE + "dir/" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.PURPLE + "   visible.txt" + nl + ConsoleColor.RESET));
+    assertTrue(output.contains(ConsoleColor.PURPLE + "   .hidden.txt" + nl + ConsoleColor.RESET));
 }
 
     @Test
