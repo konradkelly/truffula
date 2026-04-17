@@ -457,6 +457,126 @@ public void testPrintTree_ColorWithHiddenShown(@TempDir File tempDir) throws IOE
     assertTrue(output.contains(ConsoleColor.PURPLE + "   .hidden.txt" + nl + ConsoleColor.RESET));
 }
 
+@Test
+public void testPrintTree_AlphabetizedCaseInsensitive(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "root");
+    folder.mkdir();
+    // Create in non-alphabetical order
+    new File(folder, "zoo.txt").createNewFile();
+    new File(folder, "Alligator.txt").createNewFile();
+    new File(folder, "newt.txt").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    String expected = "" + white + "root/" + nl + reset
+                    + white + "   Alligator.txt" + nl + reset
+                    + white + "   newt.txt" + nl + reset
+                    + white + "   zoo.txt" + nl + reset;
+    assertEquals(expected, output);
+}
+
+@Test
+public void testPrintTree_AlphabetizedDirectories(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "repo");
+    folder.mkdir();
+    File archive = new File(folder, "tests");
+    archive.mkdir();
+    File cargo = new File(folder, "dependencies");
+    cargo.mkdir();
+    File bridge = new File(folder, "classes");
+    bridge.mkdir();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    String expected = "" + white + "repo/" + nl + reset
+                    + white + "   classes/" + nl + reset
+                    + white + "   dependencies/" + nl + reset
+                    + white + "   tests/" + nl + reset;
+    assertEquals(expected, output);
+}
+
+@Test
+public void testPrintTree_AlphabetizedNestedFiles(@TempDir File tempDir) throws IOException {
+    File root = new File(tempDir, "root");
+    root.mkdir();
+    File subDir = new File(root, "miscellaneous");
+    subDir.mkdir();
+    new File(subDir, "zeplin.md").createNewFile();
+    new File(subDir, "almanac.md").createNewFile();
+    new File(subDir, "noir.md").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(root, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    String expected = "" + white + "root/" + nl + reset
+                    + white + "   miscellaneous/" + nl + reset
+                    + white + "      almanac.md" + nl + reset
+                    + white + "      noir.md" + nl + reset
+                    + white + "      zeplin.md" + nl + reset;
+    assertEquals(expected, output);
+}
+
+@Test
+public void testPrintTree_AlphabetizedNestedFilesAndDirectories(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "fromUnknownOriginInTheUniverse");
+    folder.mkdir();
+    new File(folder, "Oumuamua.txt").createNewFile();
+    new File(folder, "borisov.txt").createNewFile();
+    new File(folder, "Halley.txt").createNewFile();
+
+    File comets = new File(folder, "comets");
+    comets.mkdir();
+    new File(comets, "Tempel.txt").createNewFile();
+    new File(comets, "encke.txt").createNewFile();
+    new File(comets, "Hale-Bopp.txt").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+
+    String output = baos.toString();
+    String nl = System.lineSeparator();
+    ConsoleColor white = ConsoleColor.WHITE;
+    ConsoleColor reset = ConsoleColor.RESET;
+
+    String expected = "" + white + "fromUnknownOriginInTheUniverse/" + nl + reset
+                    + white + "   borisov.txt" + nl + reset
+                    + white + "   comets/" + nl + reset
+                    + white + "      encke.txt" + nl + reset
+                    + white + "      Hale-Bopp.txt" + nl + reset
+                    + white + "      Tempel.txt" + nl + reset
+                    + white + "   Halley.txt" + nl + reset
+                    + white + "   Oumuamua.txt" + nl + reset;
+    assertEquals(expected, output);
+}
     @Test
     public void testPrintTree_ExactOutput_WithCustomPrintStream(@TempDir File tempDir) throws IOException {
         // Build the example directory structure:
