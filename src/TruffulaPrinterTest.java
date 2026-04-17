@@ -287,6 +287,94 @@ public void testPrintTree_LongFileAndFolderNames(@TempDir File tempDir) throws I
     assertTrue(output.contains(white + "      folderfolderfolderfolderfolderfolderfolder.pdf"));
 }
 
+@Test
+public void testPrintTree_HiddenFileIsHidden(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "tests");
+    folder.mkdir();
+    new File(folder, "visible.txt").createNewFile();
+    createHiddenFile(folder, ".invisible");
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+    String output = baos.toString();
+
+    assertTrue(output.contains("visible.txt"));
+    assertFalse(output.contains(".invisible"));
+}
+
+@Test
+public void testPrintTree_HiddenFileIsShown(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "tests");
+    folder.mkdir();
+    new File(folder, "visible.txt").createNewFile();
+    createHiddenFile(folder, ".invisible");
+
+    TruffulaOptions options = new TruffulaOptions(folder, true, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+    String output = baos.toString();
+
+    assertTrue(output.contains("visible.txt"));
+    assertTrue(output.contains(".invisible"));
+}
+
+@Test
+public void testPrintTree_HiddenSubFolderHidden(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "dir");
+    folder.mkdir();
+    new File(folder, "shown.txt").createNewFile();
+
+    File hiddenDir = new File(folder, ".invisible");
+    hiddenDir.mkdir();
+    if (isWindows()) {
+        Path path = Paths.get(hiddenDir.toURI());
+        Files.setAttribute(path, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
+    }
+    new File(hiddenDir, "hidden.png").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, false, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+    String output = baos.toString();
+
+    assertTrue(output.contains("shown.txt"));
+    assertFalse(output.contains(".invisible"));
+    assertFalse(output.contains("hidden.png"));
+}
+
+@Test
+public void testPrintTree_HiddenSubFolderShown(@TempDir File tempDir) throws IOException {
+    File folder = new File(tempDir, "dir");
+    folder.mkdir();
+    new File(folder, "shown.txt").createNewFile();
+
+    File hiddenDir = new File(folder, ".invisible");
+    hiddenDir.mkdir();
+    if (isWindows()) {
+        Path path = Paths.get(hiddenDir.toURI());
+        Files.setAttribute(path, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
+    }
+    new File(hiddenDir, "hidden.txt").createNewFile();
+
+    TruffulaOptions options = new TruffulaOptions(folder, true, false);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    TruffulaPrinter printer = new TruffulaPrinter(options, ps);
+    printer.printTree();
+    String output = baos.toString();
+
+    assertTrue(output.contains("shown.txt"));
+    assertTrue(output.contains(".invisible"));
+    assertTrue(output.contains("hidden.txt"));
+}
+
     @Test
     public void testPrintTree_ExactOutput_WithCustomPrintStream(@TempDir File tempDir) throws IOException {
         // Build the example directory structure:

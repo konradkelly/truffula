@@ -110,6 +110,9 @@ public class TruffulaPrinter {
 
   private void printTreeHelper(File file, int k) {
     if (file == null) return;
+    if (!options.isShowHidden() && file.isHidden()) {
+      return;
+    }
     String indent = "";
     for (int i = 0; i < k; i++) {
       indent += "   ";
@@ -117,7 +120,10 @@ public class TruffulaPrinter {
 
     if (file.isDirectory()) {
         out.println(indent + file.getName() + "/");
+        
         File[] children = file.listFiles();
+        if (children == null) return;
+        
         for (File child : children) {
         printTreeHelper(child, k + 1);
       } 
